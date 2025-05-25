@@ -8,6 +8,7 @@ import {
 } from "@expo-google-fonts/roboto";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import NetInfo from "@react-native-community/netinfo";
 import axios from 'axios';
 import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
@@ -37,7 +38,7 @@ export default function Login({ navigation }) {
     Roboto_100Thin,
   });
 
-  const API = "http://192.168.137.1:5000"
+  const API = "http://192.168.137.100:5000"  // This is the Android emulator's special IP for localhost
 
   const loginUser = async () => {
     if (!email || !password) {
@@ -46,10 +47,22 @@ export default function Login({ navigation }) {
     }
 
     try {
+      // Check network connectivity first
+      const netInfo = await NetInfo.fetch();
+      if (!netInfo.isConnected) {
+        alert("No internet connection. Please check your network and try again.");
+        return;
+      }
+
       setLoading(true);
       const response = await axios.post(`${API}/api/auth/login`, { 
         email, 
         password 
+      }, {
+        timeout: 10000, // 10 second timeout
+        headers: {
+          'Content-Type': 'application/json',
+        }
       });
       
       console.log('Login response:', response.data);
@@ -72,25 +85,22 @@ export default function Login({ navigation }) {
     } catch (error) {
       console.error('Login error:', error);
       
-      if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        console.error('Error data:', error.response.data);
-        console.error('Error status:', error.response.status);
-        
+      if (error.code === 'ECONNABORTED') {
+        alert("Request timed out. Please check your connection and try again.");
+      } else if (error.response) {
+        // Server responded with error
         if (error.response.status === 400) {
           alert(error.response.data.error || "Invalid credentials");
+        } else if (error.response.status === 401) {
+          alert("Invalid email or password");
         } else {
           alert(error.response.data.error || "Login failed. Please try again.");
         }
       } else if (error.request) {
-        // The request was made but no response was received
-        console.error('No response received:', error.request);
-        alert("Cannot connect to the server. Please make sure the server is running.");
+        // No response received
+        alert("Cannot connect to the server. Please check if the server is running and try again.");
       } else {
-        // Something happened in setting up the request that triggered an Error
-        console.error('Error setting up request:', error.message);
-        alert("An error occurred while setting up the request. Please try again.");
+        alert("An unexpected error occurred. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -135,6 +145,7 @@ export default function Login({ navigation }) {
             <TextInput
               style={styles.input}
               placeholder="Enter your email"
+              placeholderTextColor="#000"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -146,6 +157,7 @@ export default function Login({ navigation }) {
             <TextInput
               style={styles.input}
               placeholder="Enter your password"
+              placeholderTextColor="#000"
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}

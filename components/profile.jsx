@@ -12,12 +12,12 @@ import * as Haptics from 'expo-haptics';
 import { useEffect, useState } from "react";
 import {
   Alert,
+  Image,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
-  Image
+  View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 

@@ -1,6 +1,8 @@
+"use client"
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Accelerometer, Gyroscope, Magnetometer, Pedometer } from 'expo-sensors';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 interface Position {

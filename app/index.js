@@ -1,16 +1,17 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import { GestureHandlerRootView, TouchableWithoutFeedback } from "react-native-gesture-handler";
-
+import SplashScreen from 'react-native-splash-screen'
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Animated, Dimensions, StyleSheet, Text, View } from "react-native";
+import { Animated, Dimensions, StyleSheet, Text, View, Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AboutUs from "../components/aboutUs";
 import AccountPage from "../components/accountPage";
 import ContactUs from "../components/contactUs";
 // import DeadReckoning from "../components/DeadReckoning";
 import HomeScreen from "../components/home";
+import RewardSection from "../components/rewardSection";
 import Login from "../components/login";
 import Maps from "../components/maps";
 import Notification from "../components/notification";
@@ -66,7 +67,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
         };
 
         let iconName;
-        if (route.name === "Guide") iconName = "home-outline";
+        if (route.name === "Reward") iconName = "cash-outline";
         else if (route.name === "Maps") iconName = "map-outline";
         else if (route.name === "Account") iconName = "finger-print-outline";
         else if (route.name === "Profile") iconName = "person-circle-outline";
@@ -131,8 +132,8 @@ function MainTabs() {
         headerShown: false,
       }}
     >
-      <Tab.Screen name="Guide" component={HomeScreen} />
       <Tab.Screen name="Maps" component={Maps} />
+      <Tab.Screen name="Reward" component={RewardSection} />
       <Tab.Screen name="Account" component={AccountPage} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
       {/* <Tab.Screen 
@@ -145,6 +146,14 @@ function MainTabs() {
 }
 
 export default function App() {
+
+
+  useEffect(() => {
+    if(Platform.OS === "android"){
+      SplashScreen.hide();
+    }
+  }, []);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
@@ -181,7 +190,7 @@ const styles = StyleSheet.create({
     gap:26,
     alignItems: "center",
     paddingTop: 0,
-    bottom: 5,
+    bottom: 9,
     marginLeft: 10,
     right: 12,
     width: "95%",

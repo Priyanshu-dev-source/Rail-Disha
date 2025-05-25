@@ -6,6 +6,7 @@ import {
   useFonts,
 } from "@expo-google-fonts/roboto";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
+import NetInfo from "@react-native-community/netinfo";
 import axios from 'axios';
 
 import { StatusBar } from "expo-status-bar";
@@ -39,7 +40,7 @@ export default function SignUp({ navigation }) {
     Roboto_700Bold,
     Roboto_400Regular,
   });
-  const API = "http://192.168.137.1:5000"
+  const API = "http://192.168.137.100:5000"  // This is the Android emulator's special IP for localhost
 
 
   const registerUser = async () => {
@@ -54,24 +55,29 @@ export default function SignUp({ navigation }) {
     }
     
     try {
+      // Check network connectivity first
+      const netInfo = await NetInfo.fetch();
+      if (!netInfo.isConnected) {
+        alert("No internet connection. Please check your network and try again.");
+        return;
+      }
+
       setLoading(true);
-      // const formData = new FormData();
-      // formData.append('name', username);
-      // formData.append('email', email);
-      // formData.append('password', password);
       const formData = {
-        name: username,          // map your input field
+        name: username,
         email: email,
         password: password
       };
     
       console.log('Attempting to register with:', { username, email });
-      const response = await axios.post(`${API}/api/auth/register`, formData)
-      //  {
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      // });
+      
+      // Add timeout to the axios request
+      const response = await axios.post(`${API}/api/auth/register`, formData, {
+        timeout: 10000, // 10 second timeout
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
     
       console.log('Registration response:', response.data);
       
@@ -85,12 +91,10 @@ export default function SignUp({ navigation }) {
     } catch (error) {
       console.error('Registration error:', error);
       
-      if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        console.error('Error data:', error.response.data);
-        console.error('Error status:', error.response.status);
-        
+      if (error.code === 'ECONNABORTED') {
+        alert("Request timed out. Please check your connection and try again.");
+      } else if (error.response) {
+        // Server responded with error
         if (error.response.status === 400) {
           alert(error.response.data.message || "Invalid registration data. Please check your inputs.");
         } else if (error.response.status === 409) {
@@ -99,13 +103,10 @@ export default function SignUp({ navigation }) {
           alert(error.response.data.message || "Registration failed. Please try again.");
         }
       } else if (error.request) {
-        // The request was made but no response was received
-        console.error('No response received:', error.request);
-        alert("Cannot connect to the server. Please make sure the server is running.");
+        // No response received
+        alert("Cannot connect to the server. Please check if the server is running and try again.");
       } else {
-        // Something happened in setting up the request that triggered an Error
-        console.error('Error setting up request:', error.message);
-        alert("An error occurred while setting up the request. Please try again.");
+        alert("An unexpected error occurred. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -152,10 +153,10 @@ export default function SignUp({ navigation }) {
             <TextInput
               style={styles.input}
               placeholder="Username"
+              placeholderTextColor="#000"
               value={username}
               onChangeText={setUsername}
               autoCapitalize="none"
-              // color="#000"
             />
           </View>
 
@@ -163,6 +164,7 @@ export default function SignUp({ navigation }) {
             <TextInput
               style={styles.input}
               placeholder="Email"
+              placeholderTextColor="#000"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -174,6 +176,7 @@ export default function SignUp({ navigation }) {
             <TextInput
               style={styles.input}
               placeholder="Password"
+              placeholderTextColor="#000"
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
@@ -195,6 +198,7 @@ export default function SignUp({ navigation }) {
             <TextInput
               style={styles.input}
               placeholder="Confirm password"
+              placeholderTextColor="#000"
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               secureTextEntry={!showConfirmPassword}
