@@ -93,6 +93,17 @@ export default function MapScreen() {
   const [isSearching, setIsSearching] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [showBottomBox, setShowBottomBox] = useState(false);
+  const searchResultsAnimation = useRef(new Animated.Value(0)).current;
+  const bottomBoxAnimation = useRef(new Animated.Value(0)).current;
+  const expandedSearchAnimation = useRef(new Animated.Value(0)).current;
+  const [showRouteDetails, setShowRouteDetails] = useState(false);
+  const routeDetailsAnimation = useRef(new Animated.Value(0)).current;
+  const [showStartAnimation, setShowStartAnimation] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const startAnimationOpacity = useRef(new Animated.Value(0)).current;
+  const letsGoScale = useRef(new Animated.Value(0)).current;
+  const navigationBoxAnimation = useRef(new Animated.Value(0)).current;
+  const [floatingSearchBar, setFloatingSearchBar] = useState(true);
 
   const handlePositionUpdate = (position) => {
     setCurrentPosition(position);
@@ -113,9 +124,24 @@ export default function MapScreen() {
       );
       setSearchResults(filtered);
       setIsSearching(true);
+      // Add delay to search results animation
+      setTimeout(() => {
+        Animated.spring(searchResultsAnimation, {
+          toValue: 1,
+          useNativeDriver: true,
+          tension: 50,
+          friction: 7
+        }).start();
+      }, 200);
     } else {
-      setSearchResults([]);
-      setIsSearching(false);
+      Animated.timing(searchResultsAnimation, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true
+      }).start(() => {
+        setSearchResults([]);
+        setIsSearching(false);
+      });
     }
   };
 
@@ -123,14 +149,73 @@ export default function MapScreen() {
     setSelectedPlace(place);
     setSearchResults([]);
     setIsSearching(false);
-    setShowBottomBox(true);
     setDestination(place.name);
+    animateLabel(destLabelPosition, destScale, 1);
+    setShowBottomBox(true);
+    // Add delay to bottom box animation
+    setTimeout(() => {
+      Animated.spring(bottomBoxAnimation, {
+        toValue: 1,
+        useNativeDriver: true,
+        tension: 50,
+        friction: 7
+      }).start();
+    }, 200);
   };
 
   const handleStartNavigation = () => {
     setShowBottomBox(false);
     setIsSearchBoxExpanded(true);
+    animateLabel(destLabelPosition, destScale, 1);
     handleSearchPress();
+  };
+
+  const handleFinalStart = () => {
+    setFloatingSearchBar(false);
+    setShowStartAnimation(true);
+
+    // Animate overlay and "Let's Go" text
+    Animated.sequence([
+      Animated.parallel([
+        Animated.timing(startAnimationOpacity, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.spring(letsGoScale, {
+          toValue: 1,
+          tension: 50,
+          friction: 7,
+          useNativeDriver: true,
+        })
+      ]),
+      Animated.delay(1200), // Hold for 1.5s total
+      Animated.parallel([
+        Animated.timing(startAnimationOpacity, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(letsGoScale, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        })
+      ])
+    ]).start(() => {
+      setShowStartAnimation(false);
+      setIsNavigating(true);
+      setShowRouteDetails(false);
+      setShowBottomBox(false);
+      
+      // Animate in the navigation box
+      Animated.spring(navigationBoxAnimation, {
+        toValue: 1,
+        tension: 50,
+        friction: 7,
+        useNativeDriver: true,
+      }).start();
+    });
   };
 
   const handleVoiceInput = () => {
@@ -140,18 +225,15 @@ export default function MapScreen() {
 
   const handleSearchPress = () => {
     setIsSearchBoxExpanded(true);
-    Animated.parallel([
-      Animated.timing(searchBoxHeight, {
-        toValue: 350,
-        duration: 300,
-        useNativeDriver: false,
-      }),
-      Animated.timing(searchBoxOpacity, {
+    // Add delay to expanded search box animation
+    setTimeout(() => {
+      Animated.spring(expandedSearchAnimation, {
         toValue: 1,
-        duration: 300,
-        useNativeDriver: false,
-      }),
-    ]).start();
+        useNativeDriver: true,
+        tension: 50,
+        friction: 7
+      }).start();
+    }, 200);
   };
 
   const animateLabel = (position, scale, toValue) => {
@@ -173,7 +255,9 @@ export default function MapScreen() {
       animateLabel(startLabelPosition, startScale, 1);
     } else {
       setIsDestFocused(true);
-      animateLabel(destLabelPosition, destScale, 1);
+      if (!destination) {
+        animateLabel(destLabelPosition, destScale, 1);
+      }
     }
   };
 
@@ -191,29 +275,39 @@ export default function MapScreen() {
   const handleBackdropPress = () => {
     if (isSearchBoxExpanded) {
       Animated.parallel([
-        Animated.timing(searchBoxHeight, {
+        Animated.timing(expandedSearchAnimation, {
           toValue: 0,
-          duration: 300,
-          useNativeDriver: false,
+          duration: 250,
+          delay: 200, // Add delay to closing animations
+          useNativeDriver: true
         }),
-        Animated.timing(searchBoxOpacity, {
+        Animated.timing(bottomBoxAnimation, {
           toValue: 0,
-          duration: 300,
-          useNativeDriver: false,
-        }),
+          duration: 200,
+          delay: 200, // Add delay to closing animations
+          useNativeDriver: true
+        })
       ]).start(() => {
         setIsSearchBoxExpanded(false);
+        setShowBottomBox(false);
       });
     }
   };
 
-  const handleSwapLocations = () => {
-    // Swap the values
-    const tempLocation = startLocation;
+  const handleRouteLocationSwap = () => {
+    const temp = startLocation;
     setStartLocation(destination);
-    setDestination(tempLocation);
+    setDestination(temp);
     
-    // Animate the swap button
+    // Update the selected place to match the new destination
+    if (selectedPlace) {
+      setSelectedPlace({
+        ...selectedPlace,
+        name: temp
+      });
+    }
+
+    // Add a small animation for the swap button
     Animated.sequence([
       Animated.timing(swapButtonRotation, {
         toValue: 1,
@@ -221,7 +315,57 @@ export default function MapScreen() {
         useNativeDriver: true,
       }),
     ]).start(() => {
-      swapButtonRotation.setValue(0); // Reset for next animation
+      swapButtonRotation.setValue(0);
+    });
+  };
+
+  const handleGetRoute = () => {
+    setShowRouteDetails(true);
+    setIsSearchBoxExpanded(false);
+    setShowBottomBox(true)
+    
+    // Animate the route details box sliding down
+    Animated.spring(routeDetailsAnimation, {
+      toValue: 1,
+      useNativeDriver: true,
+      tension: 50,
+      friction: 7,
+      delay: 200
+    }).start();
+  };
+
+  const handleCloseRoute = () => {
+    // Animate out the route details box
+    Animated.parallel([
+      Animated.timing(routeDetailsAnimation, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true
+      }),
+      Animated.timing(bottomBoxAnimation, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true
+      })
+    ]).start(() => {
+      setShowRouteDetails(false);
+      setShowBottomBox(false);
+      setStartLocation('');
+      setDestination('');
+    });
+  };
+
+  const handleBackPress = () => {
+    setFloatingSearchBar(true);
+    Animated.parallel([
+      Animated.timing(navigationBoxAnimation, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      })
+    ]).start(() => {
+      setIsNavigating(false);
+      handleCloseRoute();
     });
   };
 
@@ -279,6 +423,7 @@ export default function MapScreen() {
     );
   }
 
+
   return (
     <View style={styles.container}>
       <TouchableWithoutFeedback onPress={handleBackdropPress}>
@@ -290,12 +435,15 @@ export default function MapScreen() {
       </TouchableWithoutFeedback>
 
       {/* Floating Search Bar */}
+      {
+        floatingSearchBar && 
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
           <Feather name="search" size={20} color="#666" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder="Where do you want to go?"
+            placeholderTextColor="#666"
             onChangeText={handleSearch}
             onFocus={() => setIsSearching(true)}
           />
@@ -304,30 +452,44 @@ export default function MapScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Search Results */}
+        {/* Animated Search Results */}
         {isSearching && searchResults.length > 0 && (
-          <View style={styles.searchResultsContainer}>
+          <Animated.View 
+            style={[
+              styles.searchResultsContainer,
+              {
+                transform: [{
+                  translateY: searchResultsAnimation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [-20, 0]
+                  })
+                }],
+                opacity: searchResultsAnimation
+              }
+            ]}
+          >
             <FlatList
               data={searchResults}
               renderItem={renderSearchItem}
               keyExtractor={item => item.id}
               style={styles.searchResultsList}
             />
-          </View>
+          </Animated.View>
         )}
       </View>
+      }
 
-      {/* Bottom Destination Box */}
+      {/* Animated Bottom Destination Box */}
       {showBottomBox && selectedPlace && (
         <View style={styles.bottomBox}>
           <View style={styles.destinationInfo}>
             <View style={styles.destinationHeader}>
-              <Text style={styles.destinationName}>{selectedPlace.name}</Text>
+              <Text style={styles.destinationName}>{destination}</Text>
               <Text style={styles.destinationDistance}>{selectedPlace.distance}</Text>
             </View>
             <TouchableOpacity 
               style={styles.startButton}
-              onPress={handleStartNavigation}
+              onPress={showRouteDetails ? handleFinalStart : handleStartNavigation}
             >
               <Text style={styles.startButtonText}>Start</Text>
             </TouchableOpacity>
@@ -335,16 +497,20 @@ export default function MapScreen() {
         </View>
       )}
 
-      {/* Expanded Search Box */}
+      {/* Animated Expanded Search Box */}
       {isSearchBoxExpanded && (
         <Animated.View 
           style={[
             styles.expandedSearchBox,
             {
-              height: searchBoxHeight,
-              width:"95%",
-              opacity: searchBoxOpacity,
-            },
+              transform: [{
+                translateY: expandedSearchAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [-50, 0]
+                })
+              }],
+              opacity: expandedSearchAnimation
+            }
           ]}
         >
           <View style={styles.expandedHeader}>
@@ -412,7 +578,7 @@ export default function MapScreen() {
             <View style={styles.swapButtonContainer}>
               <TouchableOpacity 
                 style={styles.swapButton}
-                onPress={handleSwapLocations}
+                onPress={handleRouteLocationSwap}
                 activeOpacity={0.7}
               >
                 <Animated.View
@@ -475,18 +641,128 @@ export default function MapScreen() {
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity style={styles.getRouteButton}>
+            <TouchableOpacity 
+              style={styles.getRouteButton}
+              onPress={handleGetRoute}
+            >
               <Text style={styles.getRouteText}>Get The Route</Text>
             </TouchableOpacity>
           </View>
         </Animated.View>
       )}
       
-      {/* Dead Reckoning Component */}
-      {/* { <View style={styles.deadReckoningContainer}>
-        <DeadReckoning onPositionUpdate={handlePositionUpdate} />
-      </View> } */}
+      {showRouteDetails && (
+        <Animated.View
+          style={[
+            styles.routeDetailsBox,
+            {
+              transform: [{
+                translateY: routeDetailsAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [-100, 0]
+                })
+              }],
+              opacity: routeDetailsAnimation
+            }
+          ]}
+        >
+          <View style={styles.routeLocations}>
+            <View style={styles.locationInfo}>
+              <View style={styles.locationHeaderContainer}>
+                <Text style={styles.locationLabel}>Your location</Text>
+                <TouchableOpacity 
+                  style={styles.closeButton}
+                  onPress={handleCloseRoute}
+                >
+                  <Feather name="x" size={20} color="#666" />
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.locationText}>{startLocation || 'Current Location'}</Text>
+              <View style={styles.separator} />
+              <Text style={styles.locationText}>{destination}</Text>
+            </View>
+            <TouchableOpacity 
+              style={styles.swapLocationsButton}
+              onPress={() => {
+                const temp = startLocation;
+                setStartLocation(destination);
+                setDestination(temp);
+              }}
+            >
+              <MaterialIcons name="swap-vert" size={24} color="white" />
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+      )}
       
+      {showStartAnimation && (
+        <Animated.View 
+          style={[
+            styles.overlay,
+            {
+              opacity: startAnimationOpacity
+            }
+          ]}
+        >
+          <Animated.Text 
+            style={[
+              styles.letsGoText,
+              {
+                transform: [{
+                  scale: letsGoScale
+                }]
+              }
+            ]}
+          >
+            {"Let's Go!"}
+          </Animated.Text>
+        </Animated.View>
+      )}
+      
+      {isNavigating && (
+        <>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={handleBackPress}
+          >
+            <Feather name="arrow-left" size={24} color="#554AE7" />
+          </TouchableOpacity>
+
+          <Animated.View
+            style={[
+              styles.navigationBox,
+              {
+                transform: [{
+                  translateY: navigationBoxAnimation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [100, 0]
+                  })
+                }],
+                opacity: navigationBoxAnimation
+              }
+            ]}
+          >
+            <View style={styles.navigationContent}>
+              <View style={styles.navigationInfo}>
+                <Text style={styles.navigationTitle}>J block</Text>
+                <View style={styles.navigationDetails}>
+                  <View style={styles.navigationDetail}>
+                    <Feather name="navigation" size={16} color="#666" />
+                    <Text style={styles.navigationDistance}>2 KM</Text>
+                    <Text style={styles.navigationLabel}>Distance</Text>
+                  </View>
+                  <View style={styles.verticalSeparator} />
+                  <View style={styles.navigationDetail}>
+                    <Feather name="clock" size={16} color="#666" />
+                    <Text style={styles.navigationTime}>20 Minutes</Text>
+                    <Text style={styles.navigationLabel}>Estimated Time</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </Animated.View>
+        </>
+      )}
       
     </View>
   );
@@ -537,7 +813,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: '#666',
+    color: '#333',
     fontFamily: 'Roboto_400Regular',
   },
   micButton: {
@@ -643,6 +919,7 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: 14,
+    fontFamily: 'Roboto_400Regular',
   },
   directionIcon: {
     alignItems: 'center',
@@ -671,6 +948,7 @@ const styles = StyleSheet.create({
     top: 10,
     left: 9,
     // right: 20,
+    width:"95%",
     backgroundColor: 'white',
     zIndex: 3,
     borderRadius: 25,
@@ -737,7 +1015,7 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     position: 'absolute',
-    left: -8,
+    left: -14,
     color: '#666',
     backgroundColor: 'transparent',
     paddingHorizontal: 4,
@@ -837,7 +1115,9 @@ const styles = StyleSheet.create({
   },
   bottomBox: {
     position: 'absolute',
-    bottom: 20,
+    height: 90,
+    paddingTop: 21,
+    bottom: 80,
     left: 20,
     right: 20,
     backgroundColor: 'white',
@@ -882,5 +1162,183 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontFamily: 'Roboto_500Medium',
+  },
+  routeDetailsBox: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    right: 20,
+    backgroundColor: 'white',
+    borderRadius: 15,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    zIndex: 10,
+  },
+  routeLocations: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  locationInfo: {
+    flex: 1,
+    marginRight: 16,
+  },
+  locationLabel: {
+    fontSize: 18,
+    color: '#554AE7',
+    fontFamily: 'Roboto_400Regular',
+    marginBottom: 10,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: '#E5E7EB',
+    marginVertical: 8,
+  },
+  swapLocationsButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#554AE7",
+    justifyContent: 'center',
+    alignItems: 'center',
+    top: 15,
+  },
+  locationHeaderContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    left:63,
+    bottom:10,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(85, 74, 231, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  letsGoText: {
+    fontSize: 48,
+    color: 'white',
+    fontFamily: 'Roboto_700Bold',
+    textTransform: 'uppercase',
+  },
+  backButton: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    zIndex: 10,
+  },
+  navigationBox: {
+    position: 'absolute',
+    bottom: 70,
+    left: 7,
+    right: 20,
+    width: "95%",
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 15,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    zIndex: 20,
+    borderTopLeftRadius:50,
+    borderTopRightRadius:50,
+  },
+  navigationContent: {
+    padding: 10,
+    // backgroundColor: 'red',
+  },
+  navigationInfo: {
+    gap: 15,
+  },
+  navigationTitle: {
+    fontSize: 18,
+    fontFamily: 'Roboto_500Medium',
+    color: 'white',
+    marginBottom: 10,
+    textAlign: 'center',
+    backgroundColor: "#554AE7",
+    height: 40,
+    paddingTop :8,
+    width: '45%',
+    borderRadius: 40,
+    marginLeft: 'auto',
+    marginRight: 'auto',
+  },
+  navigationDetails: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  navigationDetail: {
+    alignItems: 'center',
+    // borderLeftWidth: 2,
+    // borderLeftColor: '#E5E7EB',
+    gap: 5,
+  },
+  navigationDistance: {
+    fontSize: 16,
+    fontFamily: 'Roboto_500Medium',
+    color: '#333',
+    marginTop: 5,
+  },
+  navigationTime: {
+    fontSize: 16,
+    fontFamily: 'Roboto_500Medium',
+    color: '#333',
+    marginTop: 5,
+  },
+  navigationLabel: {
+    fontSize: 12,
+    fontFamily: 'Roboto_400Regular',
+    color: '#666',
+  },
+  verticalSeparator: {
+    width: 2,
+    height: 90,
+    backgroundColor: '#E5E7EB',
+    marginHorizontal: 10,
+    left:17
   },
 });

@@ -105,7 +105,7 @@ export default function SettingsScreen({ navigation }) {
             value={item.value}
           />
         ) : (
-          <Feather name="chevron-right" size={20} color="#ccc" />
+          <Feather name="chevron-right" size={20} color="#554AE7" />
         )}
       </TouchableOpacity>
     );
@@ -169,6 +169,7 @@ const styles = StyleSheet.create({
   },
   settingIcon: {
     marginRight: 15,
+    color: "#554AE7",
   },
   settingTitle: {
     fontSize: 16,

@@ -98,7 +98,7 @@ export default function AboutUs() {
           <Text style={styles.contactBoxTitle}>Contact Information</Text>
           
           <View style={styles.contactItem}>
-            <Feather name="mail" size={20} color="#1E88E5" style={styles.contactIcon} />
+            <Feather name="mail" size={20} color="#554AE7" style={styles.contactIcon} />
             <View style={styles.contactTextContainer}>
               <Text style={styles.contactLabel}>Email</Text>
               <TouchableOpacity onPress={handleEmailPress}>
@@ -108,7 +108,7 @@ export default function AboutUs() {
           </View>
           
           <View style={styles.contactItem}>
-            <Feather name="phone" size={20} color="#1E88E5" style={styles.contactIcon} />
+            <Feather name="phone" size={20} color="#554AE7" style={styles.contactIcon} />
             <View style={styles.contactTextContainer}>
               <Text style={styles.contactLabel}>Phone</Text>
               <TouchableOpacity onPress={handlePhonePress}>
@@ -118,7 +118,7 @@ export default function AboutUs() {
           </View>
           
           <View style={styles.contactItem}>
-            <Feather name="shield" size={20} color="#1E88E5" style={styles.contactIcon} />
+            <Feather name="shield" size={20} color="#554AE7" style={styles.contactIcon} />
             <View style={styles.contactTextContainer}>
               <Text style={styles.contactLabel}>App Rights</Text>
               <Text style={styles.contactText}>{contactInfo.rights}</Text>
@@ -126,7 +126,7 @@ export default function AboutUs() {
           </View>
           
           <View style={styles.contactItem}>
-            <Feather name="map-pin" size={20} color="#1E88E5" style={styles.contactIcon} />
+            <Feather name="map-pin" size={20} color="#554AE7" style={styles.contactIcon} />
             <View style={styles.contactTextContainer}>
               <Text style={styles.contactLabel}>Location</Text>
               <TouchableOpacity onPress={handleLocationPress}>
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
     padding: 20,
     boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: '#554AE7',
     marginBottom: 30,
     gap: 20
   },
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     // fontWeight: 'bold',
     marginBottom: 15,
     textAlign: 'center',
-    color: '#1E88E5',
+    color: '#554AE7',
     fontFamily:"Roboto_700Bold",
   },
   contactItem: {
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     // fontWeight: 'bold',
     marginBottom: 20,
-    color: '#1E88E5',
+    color: '#554AE7',
     textAlign: 'center',
     fontFamily:"Roboto_700Bold",
   },
@@ -255,6 +255,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: '#f0f0f0',
     marginBottom: 10,
+    borderWidth: 2,
+    borderColor: "#554AE7",
     boxShadow: '0px 2px 3px rgba(0, 0, 0, 0.1)',
   },
   memberPhoto: {

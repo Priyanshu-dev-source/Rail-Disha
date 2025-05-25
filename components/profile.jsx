@@ -17,6 +17,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Image
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -77,7 +78,11 @@ export default function ProfileScreen({ navigation }) {
 
         <View style={styles.profileInfo}>
           <View style={styles.avatarPlaceholder}>
-            <Ionicons name="person" size={40} color="#1A1A2E" />
+            <Image
+              source={require("../assets/images/userAvatar.png")}
+              style={styles.avatarImage}
+              resizeMode="cover"
+            />
           </View>
           <Text style={styles.userName}>{userData?.name || "Guest User"}</Text>
           <Text style={styles.userEmail}>{userData?.email || "Not logged in"}</Text>
@@ -94,7 +99,7 @@ export default function ProfileScreen({ navigation }) {
             <Ionicons
               name="settings-outline"
               size={24}
-              color="black"
+              color="#554AE7"
               style={styles.menuIcon}
             />
             <Text style={styles.menuText}>Settings</Text>
@@ -111,7 +116,7 @@ export default function ProfileScreen({ navigation }) {
             <Ionicons
               name="notifications-outline"
               size={24}
-              color="black"
+              color="#554AE7"
               style={styles.menuIcon}
             />
             <Text style={styles.menuText}>Notifications</Text>
@@ -128,7 +133,7 @@ export default function ProfileScreen({ navigation }) {
             <Ionicons
               name="help-circle-outline"
               size={24}
-              color="black"
+              color="#554AE7"
               style={styles.menuIcon}
             />
             <Text style={styles.menuText}>Help & Support</Text>
@@ -145,7 +150,7 @@ export default function ProfileScreen({ navigation }) {
             <Ionicons
               name="information-circle-outline"
               size={24}
-              color="black"
+              color="#554AE7"
               style={styles.menuIcon}
             />
             <Text style={styles.menuText}>About</Text>
@@ -157,7 +162,7 @@ export default function ProfileScreen({ navigation }) {
           style={styles.logoutButton}
           onPress={handleLogout}
         >
-          <Ionicons name="exit-outline" size={30} />
+          <Ionicons name="exit-outline" size={30} color="#554AE7" />
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -192,14 +197,19 @@ const styles = StyleSheet.create({
   avatarPlaceholder: {
     width: 200,
     height: 200,
-    borderRadius: "50%",
-    // backgroundColor: "cyan",
+    borderRadius: 100, // use half of width/height for circle
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 15,
-    borderWidth: 1,
-    borderColor: "#60A5FA",
-    // elevation:4
+    borderWidth: 2,
+    borderColor: "#554AE7",
+    overflow: "hidden",
+    backgroundColor: "#554AE7", // ensures the image doesn't overflow
+  },
+  avatarImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 100, // ensures the image is circular
   },
   userName: {
     fontSize: 28,
@@ -247,7 +257,7 @@ const styles = StyleSheet.create({
     gap:15
   },
   logoutText: {
-    color: "black",
+    color: "#554AE7",
     // fontWeight: "bold",
     fontSize: 22,
     fontFamily: "Roboto_700Bold",
