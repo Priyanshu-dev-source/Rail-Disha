@@ -18,6 +18,7 @@ import Notification from "../components/notification";
 import ProfileScreen from "../components/profile";
 import Setting from "../components/setting";
 import SignUp from "../components/signUp";
+import WifiScreen from "../components/wifiTest";
 // import DeadReckoning from "../components/DeadReckoning"
 
 // import { NavigationContainer } from '@react-navigation/native';
@@ -25,7 +26,7 @@ import SignUp from "../components/signUp";
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 const { width } = Dimensions.get("window");
-const TAB_WIDTH = (width * 0.93 - 20) / 4; // Adjusted for 4 tabs and padding
+const TAB_WIDTH = (width * 0.93 - 20) / 5; // Adjusted for 4 tabs and padding
 
 function CustomTabBar({ state, descriptors, navigation }) {
   const translateX = useRef(new Animated.Value(0)).current;
@@ -71,7 +72,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
         else if (route.name === "Maps") iconName = "map-outline";
         else if (route.name === "Account") iconName = "finger-print-outline";
         else if (route.name === "Profile") iconName = "person-circle-outline";
-        // else if (route.name === "DeadReckoning") iconName = "person-circle-outline";
+        else if (route.name === "WifiTest") iconName = "wifi-outline";
 
         return (
           // <TouchableWithoutFeedback
@@ -136,6 +137,7 @@ function MainTabs() {
       <Tab.Screen name="Reward" component={RewardSection} />
       <Tab.Screen name="Account" component={AccountPage} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen name="WifiTest" component={WifiScreen} />
       {/* <Tab.Screen 
         name="DeadReckoning" 
         component={DeadReckoning}
@@ -187,7 +189,7 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "row",
     justifyContent: "center",
-    gap:26,
+    gap:8,
     alignItems: "center",
     paddingTop: 0,
     bottom: 9,
@@ -210,7 +212,7 @@ const styles = StyleSheet.create({
   iconContainer: {
     display: "flex",
     height: 60,
-    width: 60,
+    width: 58,
     alignItems: "center",
     justifyContent: "space-evenly",
     position: "relative",

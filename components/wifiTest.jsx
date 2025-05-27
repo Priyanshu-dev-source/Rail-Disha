@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -20,7 +20,7 @@ const SCAN_INTERVAL = 30000; // 30 seconds
 const BEACONS = [
   { SSID: 'DDDEPS1', latitude: 28.6139, longitude: 77.2090 },
   { SSID: 'DDDEPS2', latitude: 19.0760, longitude: 72.8777 },
-  { SSID: 'DDDEPS3', latitude: 13.0827, longitude: 80.2707 }
+  { SSID: "DDDEPS3", latitude: 13.0827, longitude: 80.2707 }
 ];
 
 const WifiTest = () => {
@@ -31,6 +31,8 @@ const WifiTest = () => {
   const [lastScanTime, setLastScanTime] = useState(0);
   const [scanning, setScanning] = useState(false);
   const [beaconsInRange, setBeaconsInRange] = useState([]);
+  const [beaconDet, setBeaconDet ] = useState(true)
+  const hasShownBeaconAlert = useRef(false);
 
   const requestLocationPermission = async () => {
     try {
@@ -107,9 +109,10 @@ const WifiTest = () => {
         }).filter(Boolean);
         setBeaconsInRange(detectedBeacons);
 
-        // Notify if all 3 are in range
-        if (detectedBeacons.length === BEACONS.length) {
+        // Notify if all 3 are in range - only once
+        if (detectedBeacons.length === BEACONS.length && !hasShownBeaconAlert.current) {
           Alert.alert("Beacon Range", "You are in range of all 3 beacons and connected!");
+          hasShownBeaconAlert.current = true;
         }
 
       } catch (error) {
@@ -140,7 +143,7 @@ const WifiTest = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       scanWifiNetworks(true);
-    }, 100000);
+    }, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -231,11 +234,14 @@ const WifiTest = () => {
                   {beacon.SSID} — Lat: {beacon.latitude}, Lon: {beacon.longitude}
                 </Text>
                 <Text style={styles.beaconSignal}>
-                  Distance: {(-40-beacon.RSSI)/(10*3)} decibels: {beacon.RSSI} dBm ({beacon.signalQuality})
+                  Distance: {(-40-beacon.RSSI)/(10*2.500000)}m   Decibels: {beacon.RSSI} dBm 
+                  ({beacon.signalQuality})
                 </Text>
               </View>
+              {/* <Text>Actual position by Wifi triangulation:  X:{((-40-beacon.RSSI)/(10*2.500000))**2}</Text> */}
             </View>
           ))}
+          
         </View>
 
         {wifiNetworks.length === 0 && !error && (
@@ -250,7 +256,7 @@ const WifiTest = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'white' },
+  container: { flex: 1, backgroundColor: 'white', paddingBottom:100 },
   header: { paddingTop: 20, paddingHorizontal: 20, paddingBottom: 10 },
   headerTitle: { fontSize: 28, fontWeight: 'bold', color: '#1A1A2E' },
   scanButton: {

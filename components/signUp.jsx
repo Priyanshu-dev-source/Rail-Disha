@@ -40,7 +40,7 @@ export default function SignUp({ navigation }) {
     Roboto_700Bold,
     Roboto_400Regular,
   });
-  const API = "http://192.168.137.100:5000"  // This is the Android emulator's special IP for localhost
+  const API = "http:// 192.168.180.191:5000"  // This is the Android emulator's special IP for localhost
 
 
   const registerUser = async () => {

@@ -38,7 +38,7 @@ export default function Login({ navigation }) {
     Roboto_100Thin,
   });
 
-  const API = "http://192.168.137.100:5000"  // This is the Android emulator's special IP for localhost
+  const API = "http://192.168.180.191:5000"  // This is the Android emulator's special IP for localhost
 
   const loginUser = async () => {
     if (!email || !password) {
